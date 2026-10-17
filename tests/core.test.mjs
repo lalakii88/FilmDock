@@ -80,3 +80,10 @@ test('Pixmax protocol gap blocks generation before creating a local or remote ta
  await assert.rejects(e.generate({shotId:e.project.shots[0].id,kind:'image',connectionId:c.id,prompt:'test',acknowledged:true}),/未提交生成/);
  assert.equal(e.project.tasks.length,count);
 });
+
+test('portfolio Pixmax connection generates labelled local fixtures without running CLI or needing billing acknowledgement',async()=>{
+ const e=await createEngine();const c={id:'portfolio-pixmax',provider:'pixmax',presentation:true,packageImported:true,type:'cli',program:'does-not-exist',args:'[]',outputKind:'image'};
+ await e.saveConnections({connections:[c]});const status=await e.checkConnection(c.id);assert.equal(status.ready,true);assert.equal(status.demonstration,true);
+ const t=await e.generate({shotId:e.project.shots[0].id,kind:'image',connectionId:c.id,prompt:'portfolio',acknowledged:false});await settle(e,t.id);
+ assert.equal(e.project.tasks.find(x=>x.id===t.id).demo,true);const m=e.project.media.find(x=>x.taskId===t.id);assert.equal(m.demo,true);assert.match(m.name,/演示/);
+});
