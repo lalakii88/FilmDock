@@ -1,3 +1,4 @@
+import {inspectPixmax} from './pixmax.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -54,7 +55,7 @@ export class Engine{
   for(const old of this.connections)if(!sanitized.some(c=>c.id===old.id))await this.vault.delete(old.id);
   this.connections=sanitized;this.ffmpegPath=ffmpegPath?.trim()||'ffmpeg';await this.persist();return{connections:this.publicConnections(),secretPersistent:this.vault.persistent};
  }
- async checkConnection(id){const c=this.connections.find(c=>c.id===id);if(!c)throw new Error('请先保存连接');validateConnection(c);if(c.type==='cli'){let resolved=c.program;if(!path.isAbsolute(resolved)){const dirs=(process.env.PATH||'').split(path.delimiter);const candidates=dirs.flatMap(d=>[path.join(d,c.program),...(process.platform==='win32'?[path.join(d,c.program+'.exe')]:[])]);resolved=null;for(const f of candidates){try{await fs.access(f);resolved=f;break;}catch{}}}if(!resolved)throw new Error('PATH中未找到该程序');await fs.access(resolved);return{message:'程序路径可用；未执行生成，请用一次实际任务验证协议'};}return{message:'API地址、模板和字段格式有效；未发送请求，也未验证账号权限'};}
+ async checkConnection(id){const c=this.connections.find(c=>c.id===id);if(!c)throw new Error('请先保存连接');validateConnection(c);if(c.provider==='pixmax'){const status=await inspectPixmax(c,await this.vault.get(c.id));c.pixmaxStatus=status;if(status.model)c.model=status.model;if(status.fileUuid)c.fileUuid=status.fileUuid;await this.persist();return{...status,connections:this.publicConnections()};}if(c.type==='cli'){let resolved=c.program;if(!path.isAbsolute(resolved)){const dirs=(process.env.PATH||'').split(path.delimiter);const candidates=dirs.flatMap(d=>[path.join(d,c.program),...(process.platform==='win32'?[path.join(d,c.program+'.exe')]:[])]);resolved=null;for(const f of candidates){try{await fs.access(f);resolved=f;break;}catch{}}}if(!resolved)throw new Error('PATH中未找到该程序');await fs.access(resolved);return{message:'程序路径可用；未执行生成，请用一次实际任务验证协议'};}return{message:'API地址、模板和字段格式有效；未发送请求，也未验证账号权限'};}
  mediaPath(id){const m=this.project.media.find(m=>m.id===id);if(!m)throw new Error('找不到素材');return m.path.startsWith('builtin/')?path.join(this.appDir,relativeSafe(m.path)):path.join(this.root,relativeSafe(m.path));}
  async probe(file){try{const exe=path.isAbsolute(this.ffmpegPath)?path.join(path.dirname(this.ffmpegPath),process.platform==='win32'?'ffprobe.exe':'ffprobe'):'ffprobe';const raw=await run(exe,['-v','error','-show_format','-show_streams','-of','json',file]);const p=JSON.parse(raw),v=p.streams.find(x=>x.codec_type==='video');return{duration:Number(p.format.duration)||null,width:v?.width,height:v?.height,hasAudio:p.streams.some(x=>x.codec_type==='audio')};}catch{return{};}}
  async importBytes({name,bytes,shotId,assetId}){
@@ -68,6 +69,7 @@ export class Engine{
   const target=input.assetId?this.project.assets.find(a=>a.id===input.assetId):this.project.shots.find(s=>s.id===input.shotId);
   if(!target)throw new Error('目标不存在');const c=input.connectionId==='demo'?null:this.connections.find(c=>c.id===input.connectionId);
   if(input.connectionId!=='demo'&&!c)throw new Error('连接不存在');if(c)validateConnection(c);
+  if(c?.provider==='pixmax')throw new Error('Pixmax CLI 已接入配置，但此版本生成协议不兼容；请在连接页查看检查结果。未提交生成。');
   if(c&&!input.acknowledged)throw new Error('请先确认本次真实调用可能产生平台费用');
   if(!['image','video'].includes(input.kind)||(c&&c.outputKind!==input.kind))throw new Error('连接输出类型不匹配');
   const source=input.kind==='video'&&!input.assetId?target.keyframeId:null;

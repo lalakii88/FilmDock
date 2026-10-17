@@ -89,3 +89,16 @@ npm start
 ## 开源许可
 
 项目源码与内置演示素材以 MIT 许可证发布，详见 [LICENSE](LICENSE)。第三方 fflate 的许可证保留于 `app/vendor/fflate.LICENSE`；其他依赖遵循各自许可证。
+
+## Pixmax CLI 简化接入（配置预览）
+
+在桌面客户端的「连接与模型」点击「连接 Pixmax CLI」：
+
+1. 已安装 CLI：选择 pixmax 可执行程序；或点击「导入 CLI ZIP 包」，选择 Pixmax 发布的技能包。
+2. 导入 ZIP 时使用包内的自包含 Runtime，仍需要本机 Python 3.10+；如未加入 PATH，请选择 python.exe。不会自动安装程序、修改系统环境或把 CLI 包上传到仓库。
+3. 复用 CLI 已有登录。尚未登录时，在本机终端运行 pixmax auth login web 并完成浏览器授权。也可在客户端的独立密钥栏填写密钥。
+4. 点击「检查连接」：自动检测环境、线上鉴权、默认画布与模型；未选择默认画布时可填写画布 UUID。图片和视频使用独立连接配置。
+
+**此版完成的是配置接入，不是可用的 Pixmax 生成适配器。** 当前提供的 CLI 的 node create dry-run 缺少 baseRevision，节点含 fileUuid/isGenerateNode 等协议外字段，并且不支持复用客户端 UUID。客户端因此明确阻止生成；不会绕过检查调用原始接口。需要 CLI 修复普通生成节点协议、稳定 UUID、提交与恢复语义后，才能继续实现生成与结果下载。即使后续 CLI 的 dry-run 改善，本版也不会自动开放生成。
+
+检查连接会执行 CLI 自检、线上只读查询和 dry-run，不创建节点、不提交收费任务。CLI 启动器可能按自身规则检查更新。导入的 Runtime 保存在本机应用用户数据目录的 cli-runtimes 中；项目交接包不包含 Runtime、连接配置或密钥。
