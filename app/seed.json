@@ -1,0 +1,291 @@
+{
+  "schemaVersion": "0.2.0-demo",
+  "id": "project-before-the-rain-stops",
+  "title": "雨停之前",
+  "subtitle": "原创短片 · 近未来 / 情感",
+  "ratio": "16:9",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "script": "内景 旧车站 雨夜\n林夏抱着快没电的机器人阿锈，等最后一班车。\n她望向窗外，雨把灯光拉得很长。\n阿锈抬起手，指向挂在窗边的一只纸鹤。\n林夏取下纸鹤，轻轻放进它的掌心。\n林夏：“雨停了，我们就走。”阿锈点亮最后一格暖光。\n天光穿过云层，两人一起走向站台。",
+  "assets": [
+    {
+      "id": "asset-character",
+      "name": "林夏",
+      "type": "character",
+      "description": "短发，浅色外套，橙色围巾；安静、坚定。",
+      "mediaId": "image-2"
+    },
+    {
+      "id": "asset-robot",
+      "name": "阿锈",
+      "type": "character",
+      "description": "旧式小机器人，金属外壳，暖黄色眼灯。",
+      "mediaId": "image-3"
+    },
+    {
+      "id": "asset-scene",
+      "name": "旧车站",
+      "type": "scene",
+      "description": "冷青色雨夜，暖色顶灯，潮湿地砖与落地玻璃。",
+      "mediaId": "image-1"
+    },
+    {
+      "id": "asset-crane",
+      "name": "纸鹤",
+      "type": "prop",
+      "description": "边缘微湿的米色折纸，带着手折的细纹。",
+      "mediaId": "image-4"
+    }
+  ],
+  "shots": [
+    {
+      "id": "shot-1",
+      "code": "SH 001",
+      "title": "最后一班车",
+      "description": "旧车站的雨幕与空荡站台，林夏抱着阿锈等末班车。",
+      "duration": 5,
+      "size": "远景",
+      "angle": "站台斜前方机位",
+      "camera": "缓慢推进",
+      "dialogue": "",
+      "prompt": "旧车站的雨幕与空荡站台，林夏抱着阿锈等末班车。。冷青色雨夜，克制的暖光，真实重力与连续动作。无字幕、无配乐、无水印。",
+      "assetIds": [
+        "asset-character",
+        "asset-robot",
+        "asset-scene"
+      ],
+      "keyframeId": "image-1",
+      "videoId": "video-1",
+      "status": "adopted"
+    },
+    {
+      "id": "shot-2",
+      "code": "SH 002",
+      "title": "窗外的雨",
+      "description": "林夏靠近窗边，冷色雨光映在脸上，橙色围巾是唯一暖色。",
+      "duration": 5,
+      "size": "中近景",
+      "angle": "人物右前方机位",
+      "camera": "固定镜头",
+      "dialogue": "",
+      "prompt": "林夏靠近窗边，冷色雨光映在脸上，橙色围巾是唯一暖色。。冷青色雨夜，克制的暖光，真实重力与连续动作。无字幕、无配乐、无水印。",
+      "assetIds": [
+        "asset-character",
+        "asset-robot",
+        "asset-scene"
+      ],
+      "keyframeId": "image-2",
+      "videoId": "video-2",
+      "status": "adopted"
+    },
+    {
+      "id": "shot-3",
+      "code": "SH 003",
+      "title": "阿锈的发现",
+      "description": "阿锈缓慢抬起手，指向车窗边被雨打湿的纸鹤。",
+      "duration": 5,
+      "size": "近景",
+      "angle": "机器人左前方机位",
+      "camera": "轻推",
+      "dialogue": "",
+      "prompt": "阿锈缓慢抬起手，指向车窗边被雨打湿的纸鹤。。冷青色雨夜，克制的暖光，真实重力与连续动作。无字幕、无配乐、无水印。",
+      "assetIds": [
+        "asset-character",
+        "asset-robot",
+        "asset-scene"
+      ],
+      "keyframeId": "image-3",
+      "videoId": "video-3",
+      "status": "adopted"
+    },
+    {
+      "id": "shot-4",
+      "code": "SH 004",
+      "title": "掌心的纸鹤",
+      "description": "林夏取下纸鹤，轻轻放进阿锈掌心，手指停留片刻。",
+      "duration": 5,
+      "size": "特写",
+      "angle": "手部侧上方机位",
+      "camera": "固定镜头",
+      "dialogue": "",
+      "prompt": "林夏取下纸鹤，轻轻放进阿锈掌心，手指停留片刻。。冷青色雨夜，克制的暖光，真实重力与连续动作。无字幕、无配乐、无水印。",
+      "assetIds": [
+        "asset-character",
+        "asset-robot",
+        "asset-scene"
+      ],
+      "keyframeId": "image-4",
+      "videoId": "video-4",
+      "status": "adopted"
+    },
+    {
+      "id": "shot-5",
+      "code": "SH 005",
+      "title": "最后一格暖光",
+      "description": "阿锈亮起最后一格暖光，林夏低头看它，站台灯在雨中闪烁。",
+      "duration": 5,
+      "size": "中景",
+      "angle": "双人侧面机位",
+      "camera": "缓慢拉远",
+      "dialogue": "雨停了，我们就走。",
+      "prompt": "阿锈亮起最后一格暖光，林夏低头看它，站台灯在雨中闪烁。。冷青色雨夜，克制的暖光，真实重力与连续动作。无字幕、无配乐、无水印。",
+      "assetIds": [
+        "asset-character",
+        "asset-robot",
+        "asset-scene"
+      ],
+      "keyframeId": "image-5",
+      "videoId": null,
+      "status": "ready"
+    },
+    {
+      "id": "shot-6",
+      "code": "SH 006",
+      "title": "雨停之前",
+      "description": "天光穿过雨云，林夏和阿锈一起走向站台，纸鹤留在掌心。",
+      "duration": 5,
+      "size": "远景",
+      "angle": "站台后侧机位",
+      "camera": "跟随",
+      "dialogue": "",
+      "prompt": "天光穿过雨云，林夏和阿锈一起走向站台，纸鹤留在掌心。。冷青色雨夜，克制的暖光，真实重力与连续动作。无字幕、无配乐、无水印。",
+      "assetIds": [
+        "asset-character",
+        "asset-robot",
+        "asset-scene"
+      ],
+      "keyframeId": "image-6",
+      "videoId": null,
+      "status": "ready"
+    }
+  ],
+  "media": [
+    {
+      "id": "image-1",
+      "kind": "image",
+      "path": "builtin/shot-01.png",
+      "shotId": "shot-1",
+      "name": "最后一班车 · 关键帧",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "demo": true
+    },
+    {
+      "id": "video-1",
+      "kind": "video",
+      "path": "builtin/shot-01.mp4",
+      "shotId": "shot-1",
+      "name": "最后一班车 · 演示动态",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "duration": 5,
+      "demo": true
+    },
+    {
+      "id": "image-2",
+      "kind": "image",
+      "path": "builtin/shot-02.png",
+      "shotId": "shot-2",
+      "name": "窗外的雨 · 关键帧",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "demo": true
+    },
+    {
+      "id": "video-2",
+      "kind": "video",
+      "path": "builtin/shot-02.mp4",
+      "shotId": "shot-2",
+      "name": "窗外的雨 · 演示动态",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "duration": 5,
+      "demo": true
+    },
+    {
+      "id": "image-3",
+      "kind": "image",
+      "path": "builtin/shot-03.png",
+      "shotId": "shot-3",
+      "name": "阿锈的发现 · 关键帧",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "demo": true
+    },
+    {
+      "id": "video-3",
+      "kind": "video",
+      "path": "builtin/shot-03.mp4",
+      "shotId": "shot-3",
+      "name": "阿锈的发现 · 演示动态",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "duration": 5,
+      "demo": true
+    },
+    {
+      "id": "image-4",
+      "kind": "image",
+      "path": "builtin/shot-04.png",
+      "shotId": "shot-4",
+      "name": "掌心的纸鹤 · 关键帧",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "demo": true
+    },
+    {
+      "id": "video-4",
+      "kind": "video",
+      "path": "builtin/shot-04.mp4",
+      "shotId": "shot-4",
+      "name": "掌心的纸鹤 · 演示动态",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "duration": 5,
+      "demo": true
+    },
+    {
+      "id": "image-5",
+      "kind": "image",
+      "path": "builtin/shot-05.png",
+      "shotId": "shot-5",
+      "name": "最后一格暖光 · 关键帧",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "demo": true
+    },
+    {
+      "id": "image-6",
+      "kind": "image",
+      "path": "builtin/shot-06.png",
+      "shotId": "shot-6",
+      "name": "雨停之前 · 关键帧",
+      "createdAt": "2026-10-17T05:00:00Z",
+      "demo": true
+    }
+  ],
+  "tasks": [],
+  "timeline": [
+    {
+      "id": "clip-1",
+      "shotId": "shot-1",
+      "mediaId": "video-1",
+      "in": 0,
+      "out": 5
+    },
+    {
+      "id": "clip-2",
+      "shotId": "shot-2",
+      "mediaId": "video-2",
+      "in": 0,
+      "out": 5
+    },
+    {
+      "id": "clip-3",
+      "shotId": "shot-3",
+      "mediaId": "video-3",
+      "in": 0,
+      "out": 5
+    },
+    {
+      "id": "clip-4",
+      "shotId": "shot-4",
+      "mediaId": "video-4",
+      "in": 0,
+      "out": 5
+    }
+  ],
+  "updatedAt": "2026-10-17T05:40:32.597Z"
+}

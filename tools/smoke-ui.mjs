@@ -1,0 +1,14 @@
+import {fileURLToPath} from 'node:url';
+import {_electron as electron} from 'playwright-core';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+const root=fileURLToPath(new URL('../',import.meta.url));
+await fs.mkdir(path.join(root,'test-results'),{recursive:true});
+const app=await electron.launch({executablePath:path.join(root,'node_modules/electron/dist/electron'),args:['--no-sandbox','--disable-gpu','--ozone-platform=headless',root],env:{...process.env,FILMDOCK_TEST_MODE:'1',XDG_CONFIG_HOME:path.join(root,'test-results/config')},timeout:30000});
+const page=await app.firstWindow({timeout:30000});
+page.on('pageerror',e=>console.log('PAGE_ERROR',e.message));
+await page.waitForSelector('.shot-card',{timeout:20000});
+await page.setViewportSize({width:1600,height:1000});
+await page.screenshot({path:path.join(root,'test-results/board.png')});
+console.log('Window',await page.title(),'cards',await page.locator('.shot-card').count());
+await app.close();
