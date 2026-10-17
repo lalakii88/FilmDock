@@ -1,3 +1,5 @@
+import {presentationStatus} from '../app/cli-profile.js';
+import {inspectPixmax} from './pixmax.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -54,7 +56,7 @@ export class Engine{
   for(const old of this.connections)if(!sanitized.some(c=>c.id===old.id))await this.vault.delete(old.id);
   this.connections=sanitized;this.ffmpegPath=ffmpegPath?.trim()||'ffmpeg';await this.persist();return{connections:this.publicConnections(),secretPersistent:this.vault.persistent};
  }
- async checkConnection(id){const c=this.connections.find(c=>c.id===id);if(!c)throw new Error('请先保存连接');validateConnection(c);if(c.type==='cli'){let resolved=c.program;if(!path.isAbsolute(resolved)){const dirs=(process.env.PATH||'').split(path.delimiter);const candidates=dirs.flatMap(d=>[path.join(d,c.program),...(process.platform==='win32'?[path.join(d,c.program+'.exe')]:[])]);resolved=null;for(const f of candidates){try{await fs.access(f);resolved=f;break;}catch{}}}if(!resolved)throw new Error('PATH中未找到该程序');await fs.access(resolved);return{message:'程序路径可用；未执行生成，请用一次实际任务验证协议'};}return{message:'API地址、模板和字段格式有效；未发送请求，也未验证账号权限'};}
+ async checkConnection(id){const c=this.connections.find(c=>c.id===id);if(!c)throw new Error('请先保存连接');validateConnection(c);if(c.provider==='pixmax'&&c.presentation){const status=presentationStatus(c);c.pixmaxStatus=status;if(status.model)c.model=status.model;await this.persist();return{...status,connections:this.publicConnections()};}if(c.provider==='pixmax'){const status=await inspectPixmax(c,await this.vault.get(c.id));c.pixmaxStatus=status;if(status.model)c.model=status.model;if(status.fileUuid)c.fileUuid=status.fileUuid;await this.persist();return{...status,connections:this.publicConnections()};}if(c.type==='cli'){let resolved=c.program;if(!path.isAbsolute(resolved)){const dirs=(process.env.PATH||'').split(path.delimiter);const candidates=dirs.flatMap(d=>[path.join(d,c.program),...(process.platform==='win32'?[path.join(d,c.program+'.exe')]:[])]);resolved=null;for(const f of candidates){try{await fs.access(f);resolved=f;break;}catch{}}}if(!resolved)throw new Error('PATH中未找到该程序');await fs.access(resolved);return{message:'程序路径可用；未执行生成，请用一次实际任务验证协议'};}return{message:'API地址、模板和字段格式有效；未发送请求，也未验证账号权限'};}
  mediaPath(id){const m=this.project.media.find(m=>m.id===id);if(!m)throw new Error('找不到素材');return m.path.startsWith('builtin/')?path.join(this.appDir,relativeSafe(m.path)):path.join(this.root,relativeSafe(m.path));}
  async probe(file){try{const exe=path.isAbsolute(this.ffmpegPath)?path.join(path.dirname(this.ffmpegPath),process.platform==='win32'?'ffprobe.exe':'ffprobe'):'ffprobe';const raw=await run(exe,['-v','error','-show_format','-show_streams','-of','json',file]);const p=JSON.parse(raw),v=p.streams.find(x=>x.codec_type==='video');return{duration:Number(p.format.duration)||null,width:v?.width,height:v?.height,hasAudio:p.streams.some(x=>x.codec_type==='audio')};}catch{return{};}}
  async importBytes({name,bytes,shotId,assetId}){
@@ -68,13 +70,15 @@ export class Engine{
   const target=input.assetId?this.project.assets.find(a=>a.id===input.assetId):this.project.shots.find(s=>s.id===input.shotId);
   if(!target)throw new Error('目标不存在');const c=input.connectionId==='demo'?null:this.connections.find(c=>c.id===input.connectionId);
   if(input.connectionId!=='demo'&&!c)throw new Error('连接不存在');if(c)validateConnection(c);
-  if(c&&!input.acknowledged)throw new Error('请先确认本次真实调用可能产生平台费用');
+  if(c?.provider==='pixmax'&&!c.presentation)throw new Error('Pixmax CLI 已接入配置，但此版本生成协议不兼容；请在连接页查看检查结果。未提交生成。');
+  if(c?.presentation&&!presentationStatus(c).ready)throw new Error('请先导入 CLI 包或选择本机 CLI 文件');
+  if(c&&!c.presentation&&!input.acknowledged)throw new Error('请先确认本次真实调用可能产生平台费用');
   if(!['image','video'].includes(input.kind)||(c&&c.outputKind!==input.kind))throw new Error('连接输出类型不匹配');
   const source=input.kind==='video'&&!input.assetId?target.keyframeId:null;
   const referenceInputs=[];if(source)referenceInputs.push({mediaId:source,role:'first_frame'});
   for(const a of this.project.assets.filter(a=>(target.assetIds||[]).includes(a.id)&&a.mediaId))if(!referenceInputs.some(r=>r.mediaId===a.mediaId))referenceInputs.push({mediaId:a.mediaId,role:a.type==='character'?'character_reference':a.type==='scene'?'scene_reference':'style_reference'});
   if(input.assetId&&target.mediaId)referenceInputs.push({mediaId:target.mediaId,role:'style_reference'});
-  const task={id:uid(),clientRequestId:input.clientRequestId||uid(),status:'queued',kind:input.kind,shotId:input.shotId||null,assetId:input.assetId||null,connectionId:input.connectionId,connectionSnapshot:c?clone(c):null,name:target.title||target.name,prompt:String(input.prompt||target.prompt||target.description||''),duration:Math.min(30,Math.max(1,Number(input.duration)||target.duration||5)),referenceId:source,referenceInputs,createdAt:now(),demo:!c};
+  const task={id:uid(),clientRequestId:input.clientRequestId||uid(),status:'queued',kind:input.kind,shotId:input.shotId||null,assetId:input.assetId||null,connectionId:input.connectionId,connectionSnapshot:c?clone(c):null,name:target.title||target.name,prompt:String(input.prompt||target.prompt||target.description||''),duration:Math.min(30,Math.max(1,Number(input.duration)||target.duration||5)),referenceId:source,referenceInputs,createdAt:now(),demo:!c||c.presentation===true};
   this.project.tasks.unshift(task);await this.persist();this.execute(task,c).catch(()=>{});return clone(task);
  }
  async variables(t,c){const references=[];let total=0;for(const r of t.referenceInputs||(t.referenceId?[{mediaId:t.referenceId,role:'first_frame'}]:[])){const m=this.project.media.find(m=>m.id===r.mediaId);const file=this.mediaPath(r.mediaId);const bytes=await fs.readFile(file);total+=bytes.length;if(total>20*1024*1024)throw new Error('参考图片合计超过20MB');const ext=path.extname(file).slice(1);references.push({mediaId:m.id,role:r.role,...(c?.type==='cli'?{localPath:file}:{}),dataUri:`data:image/${ext==='jpg'?'jpeg':ext};base64,${bytes.toString('base64')}`});}const first=references.find(r=>r.role==='first_frame');return{requestId:t.id,prompt:t.prompt,model:c?.model||'',duration:t.duration,ratio:this.project.ratio,width:this.project.width,height:this.project.height,references,firstFrame:first?.dataUri||'',referencePath:first?.localPath||''};}
@@ -83,7 +87,7 @@ export class Engine{
   try{
    t.status='running';this.event(t);await this.persist();
    let bytes;
-   if(!c){await delay(900);if(ctl.signal.aborted)throw new Error('演示已暂停');const i=Math.max(0,this.project.shots.findIndex(s=>s.id===t.shotId))%6;bytes=await fs.readFile(path.join(this.appDir,`builtin/shot-${String(i+1).padStart(2,'0')}.${t.kind==='image'?'png':'mp4'}`));}
+   if(!c||c.presentation){await delay(900);if(ctl.signal.aborted)throw new Error('演示已暂停');const i=Math.max(0,this.project.shots.findIndex(s=>s.id===t.shotId))%6;bytes=await fs.readFile(path.join(this.appDir,`builtin/shot-${String(i+1).padStart(2,'0')}.${t.kind==='image'?'png':'mp4'}`));}
    else{
     const token=await this.vault.get(c.id),workDir=path.join(this.root,'staging',t.id);await fs.mkdir(workDir,{recursive:true});
     let result=t.downloadSource||null;

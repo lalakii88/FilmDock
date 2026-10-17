@@ -3,6 +3,7 @@ const path=require('node:path');
 const fs=require('node:fs/promises');
 const {pathToFileURL}=require('node:url');
 
+if(process.env.FILMDOCK_TEST_MODE==='1'&&process.env.FILMDOCK_TEST_USER_DATA)app.setPath('userData',process.env.FILMDOCK_TEST_USER_DATA);
 protocol.registerSchemesAsPrivileged([{scheme:'filmdock',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}}]);
 if(process.env.FILMDOCK_TEST_MODE!=='1'&&!app.requestSingleInstanceLock())app.quit();
 let win,engine,rendering=false;
@@ -36,11 +37,12 @@ app.whenReady().then(async()=>{
  handle('exportPackage',async()=>{const choice=await dialog.showSaveDialog(win,{title:'导出项目交接包',defaultPath:engine.project.title+'-FilmDock.zip',filters:[{name:'项目交接包',extensions:['zip']}]});if(choice.canceled)return null;const bytes=await engine.exportZip();await fs.writeFile(choice.filePath+'.tmp',bytes);await fs.rename(choice.filePath+'.tmp',choice.filePath);return{file:choice.filePath};});
  handle('openProject',async()=>{if(rendering)throw new Error('请等待粗剪导出结束后再切换项目');engine.assertIdle();const choice=await dialog.showOpenDialog(win,{title:'打开FilmDock交接包',properties:['openFile'],filters:[{name:'FilmDock项目包',extensions:['zip']}]});if(choice.canceled)return null;const stat=await fs.stat(choice.filePaths[0]);if(stat.size>100*1024*1024)throw new Error('ZIP超过Demo的100MB限制');return engine.importZip(await fs.readFile(choice.filePaths[0]));});
  handle('renderMovie',async()=>{if(rendering)throw new Error('已有导出任务正在执行');const choice=await dialog.showSaveDialog(win,{title:'导出MP4粗剪',defaultPath:engine.project.title+'-粗剪.mp4',filters:[{name:'MP4',extensions:['mp4']}]});if(choice.canceled)return null;rendering=true;try{return await engine.renderMovie(choice.filePath);}finally{rendering=false;}});
+ handle('importPixmax',async()=>{const choice=await dialog.showOpenDialog(win,{title:'选择 Pixmax CLI 技能 ZIP 包',properties:['openFile'],filters:[{name:'Pixmax CLI 包',extensions:['zip']}]});if(choice.canceled)return null;const stat=await fs.stat(choice.filePaths[0]);if(stat.size>100*1024*1024)throw new Error('CLI包超过100MB');const {inspectCliPackage}=await import('../app/cli-profile.js');return inspectCliPackage(await fs.readFile(choice.filePaths[0]),path.basename(choice.filePaths[0]));});
  handle('chooseProgram',async()=>{const choice=await dialog.showOpenDialog(win,{title:'选择程序文件',properties:['openFile']});return choice.canceled?null:choice.filePaths[0];});
  handle('window',action=>{if(action==='minimize')win.minimize();else if(action==='maximize'){win.isMaximized()?win.unmaximize():win.maximize();}else if(action==='close')win.close();});
  win=new BrowserWindow({width:1560,height:1000,minWidth:1120,minHeight:740,backgroundColor:'#111214',title:'FilmDock',icon:path.join(appDir,'icon.png'),frame:false,show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,spellcheck:false}});
  win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',(e,url)=>{if(!url.startsWith('filmdock://app/'))e.preventDefault();});
- Menu.setApplicationMenu(null);await win.loadURL('filmdock://app/index.html');win.show();
+ Menu.setApplicationMenu(null);await win.loadURL('filmdock://app/index.html');if(process.env.FILMDOCK_TEST_MODE==='1'&&process.env.FILMDOCK_SMOKE_REPORT){await fs.writeFile(process.env.FILMDOCK_SMOKE_REPORT,JSON.stringify({loaded:true,title:win.getTitle(),url:win.webContents.getURL(),version:app.getVersion()}));app.quit();return;}win.show();
  win.on('close',e=>{if(engine.controllers.size||rendering){const choice=dialog.showMessageBoxSync(win,{type:'question',buttons:['继续制作','退出客户端'],defaultId:0,cancelId:0,message:'仍有任务正在运行',detail:'退出会停止本地处理；已经提交的云端任务可能继续并产生费用。'});if(choice===0)e.preventDefault();}});
 });
 app.on('window-all-closed',()=>app.quit());

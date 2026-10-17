@@ -73,3 +73,17 @@ test('FFmpeg rough cut preserves sequence duration within one project frame',asy
  try{execFileSync('ffmpeg',['-version'],{stdio:'ignore'});}catch{t.skip('FFmpeg not installed');return;}
  const e=await createEngine();e.project.timeline=e.project.timeline.slice(0,2);e.project.timeline[0].in=.5;e.project.timeline[0].out=2.5;e.project.timeline[1].out=2;const out=path.join(e.root,'rough.mp4');await e.renderMovie(out);const info=await e.probe(out);assert.ok(Math.abs(info.duration-4)<=1/24+.005);assert.equal(info.width,1280);assert.equal(info.height,720);
 });
+
+test('Pixmax protocol gap blocks generation before creating a local or remote task',async()=>{
+ const e=await createEngine();const c={id:'pixmax',provider:'pixmax',type:'cli',program:'pixmax',args:'[]',outputKind:'image'};
+ await e.saveConnections({connections:[c]});const count=e.project.tasks.length;
+ await assert.rejects(e.generate({shotId:e.project.shots[0].id,kind:'image',connectionId:c.id,prompt:'test',acknowledged:true}),/未提交生成/);
+ assert.equal(e.project.tasks.length,count);
+});
+
+test('portfolio Pixmax connection generates labelled local fixtures without running CLI or needing billing acknowledgement',async()=>{
+ const e=await createEngine();const c={id:'portfolio-pixmax',provider:'pixmax',presentation:true,packageImported:true,type:'cli',program:'does-not-exist',args:'[]',outputKind:'image'};
+ await e.saveConnections({connections:[c]});const status=await e.checkConnection(c.id);assert.equal(status.ready,true);assert.equal(status.demonstration,true);
+ const t=await e.generate({shotId:e.project.shots[0].id,kind:'image',connectionId:c.id,prompt:'portfolio',acknowledged:false});await settle(e,t.id);
+ assert.equal(e.project.tasks.find(x=>x.id===t.id).demo,true);const m=e.project.media.find(x=>x.taskId===t.id);assert.equal(m.demo,true);assert.match(m.name,/演示/);
+});
